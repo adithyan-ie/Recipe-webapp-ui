@@ -58,12 +58,12 @@ jobs:
       # 4️⃣ Build Docker image
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/recipe-ui:latest .
+          docker build -t ghcr.io/${{ github.repository_owner }}/recipe-ui:${{ github.run_number }} .
 
       # 5️⃣ Push Docker image
       - name: Push Docker image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/recipe-ui:latest
+          docker push ghcr.io/${{ github.repository_owner }}/recipe-ui:${{ github.run_number }}
 
       # Cloud deployment: TO-DO
       # 5️⃣ Push Docker image to Azure container registry
@@ -83,4 +83,5 @@ jobs:
       #     docker push myacrname.azurecr.io/recipe-ui:latest
 
       # 6 Login to Azure and run terraform file: main.tf, acr.tf, aks.tf
+      # kubectl set image deployment/frontend frontend=ghcr.io/${{ github.repository_owner }}/recipe-ui:${{ github.run_number }}
       # 7 Login to AKS cluster and run deployment.yaml, service.yaml files
