@@ -4,7 +4,7 @@
 # Add terraform.tfvars to .gitignore.
 # ─────────────────────────────────────────────────────
 
-resource_group_name = "rg-recipe-webapp-dev"
+resource_group_name = "rg-recipe-ui"
 location            = "switzerlandnorth"
 environment         = "development"
 app_name            = "recipe-ui"
