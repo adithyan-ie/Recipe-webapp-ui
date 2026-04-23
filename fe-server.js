@@ -31,7 +31,7 @@ var endBody = '</div></body></html>';
 
 
 http.createServer(function (req, res) {
-	console.log('App is starting....')
+	console.log('React App is starting....')
 	console.log(req.url)
  
 	//This validation needed to avoid duplicated (i.e., twice!) get / calls (due to the favicon.ico)
