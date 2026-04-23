@@ -13,7 +13,7 @@ app_name            = "recipe-ui"
 webapp_name = "recipe-ui-dev"
 
 # Must be globally unique, 5-50 alphanumeric chars only
-acr_name = "recipewebappacrdev"
+acr_name = "recipeuiacr"
 
 acr_sku         = "Basic"      # Upgrade to Standard/Premium for geo-replication
 app_service_sku = "B1"       # P1v3 minimum recommended for production + slots
