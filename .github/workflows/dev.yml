@@ -100,10 +100,10 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: |
           terraform init \
-            -backend-config="resource_group_name=rg-tfstate" \
-            -backend-config="storage_account_name=sttfstaterecipewebapp" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=recipe-webapp.tfstate"
+            -backend-config="resource_group_name=rg-tfstate-ui" \
+            -backend-config="storage_account_name=sttfstaterecipewebappui" \
+            -backend-config="container_name=tfstate-ui" \
+            -backend-config="key=recipe-webapp.tfstate-ui"
 
       - name: Read use_slots from Terraform
         id: tf
