@@ -31,7 +31,7 @@ jobs:
         run: npm test || echo "No tests"
 
   docker-build-push:
-    needs: run-test
+    needs: test
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
