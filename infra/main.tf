@@ -9,14 +9,14 @@ terraform {
   }
 
   # Uncomment to use Azure Blob as remote state backend
- # backend "azurerm"{}
-   backend "azurerm" {
-    resource_group_name  = "rg-tfstate-ui"
-    storage_account_name = "sttfstaterecipewebappui"
-    container_name       = "tfstate-ui"
-    key                  = "recipe-webapp.tfstate-ui"
-    use_azuread_auth     = true
-  }
+  backend "azurerm"{}
+  #  backend "azurerm" {
+  #   resource_group_name  = "rg-tfstate-ui"
+  #   storage_account_name = "sttfstaterecipewebappui"
+  #   container_name       = "tfstate-ui"
+  #   key                  = "recipe-webapp.tfstate-ui"
+  #   use_azuread_auth     = true
+  # }
 }
 
 provider "azurerm" {
