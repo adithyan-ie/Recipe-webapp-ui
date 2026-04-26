@@ -85,8 +85,8 @@ resource "azurerm_linux_web_app" "main" {
       docker_registry_url = "https://index.docker.io"
     }
 
-    # health_check_path                 = "/"
-    # health_check_eviction_time_in_min = 2
+    health_check_path                 = "/"
+    health_check_eviction_time_in_min = 2
   }
 
   app_settings = {

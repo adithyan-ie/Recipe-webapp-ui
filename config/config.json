@@ -4,6 +4,6 @@
         "app_name": "Recipe Tracker",
 		"webservice_host": "recipe-backend-dev.azurewebsites.net",
 		"webservice_port": "443", 
-		"exposedPort": "80"
+		"exposedPort": "3000"
 	}
 }
