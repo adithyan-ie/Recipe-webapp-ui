@@ -1,4 +1,5 @@
 var http = require('http');
+var https = require('https');
 var url = require('url');
 const { parse } = require('querystring');
 var fs = require('fs');
@@ -8,7 +9,7 @@ const config = require('./config/config.json');
 const defaultConfig = config.development;
 global.gConfig = defaultConfig;
 
-// HTML structure
+// HTML parts
 var header = '<!doctype html><html><head>';
 
 var body = '</head><body><div id="container">' +
@@ -23,150 +24,152 @@ var body = '</head><body><div id="container">' +
   '<label class="control-label">Prep Time:</label>' +
   '<input class="input" type="number" name="prepTimeInMinutes" /><br />';
 
-var submitButton = '<button class="button button1">Submit</button></center></form></div>';
+var submitButton = '<button class="button button1">Submit</button></div></form>';
 var endBody = '</div></body></html>';
+
+// Helper: choose http or https
+function getHttpClient() {
+  return global.gConfig.webservice_port == "443" ? https : http;
+}
 
 http.createServer(function (req, res) {
 
-  console.log('App starting...');
-  console.log(req.url);
+  console.log('UI Server request:', req.url);
 
   if (req.url === '/favicon.ico') {
     res.writeHead(200, { 'Content-Type': 'image/x-icon' });
-    res.end();
-    return;
+    return res.end();
   }
 
   res.writeHead(200, { 'Content-Type': 'text/html' });
 
   // Load CSS
-  var fileContents = fs.readFileSync('./public/default.css', { encoding: 'utf8' });
-  res.write(header);
-  res.write('<style>' + fileContents + '</style>');
+  try {
+    var fileContents = fs.readFileSync('./public/default.css', { encoding: 'utf8' });
+    res.write(header);
+    res.write('<style>' + fileContents + '</style>');
+  } catch (e) {
+    console.error("CSS load failed:", e.message);
+    res.write(header);
+  }
+
   res.write(body);
   res.write(submitButton);
 
   let timeout = 0;
 
-  // ============================
-  // POST: Save Recipe
-  // ============================
+  // =========================
+  // POST (save recipe)
+  // =========================
   if (req.method === 'POST') {
-    timeout = 500;
+    timeout = 1000;
 
     let bodyData = '';
-    req.on('data', chunk => {
-      bodyData += chunk.toString();
-    });
+    req.on('data', chunk => bodyData += chunk.toString());
 
     req.on('end', () => {
-      const qs = require('querystring');
-      const post = qs.parse(bodyData);
+      try {
+        const qs = require('querystring');
+        var post = qs.parse(bodyData);
 
-      const myJSONObject = {
-        name: post["name"],
-        ingredients: post["ingredients"] ? post["ingredients"].split(',') : [],
-        prepTimeInMinutes: post["prepTimeInMinutes"]
-      };
+        var payload = {
+          name: post["name"],
+          ingredients: (post["ingredients"] || "").split(','),
+          prepTimeInMinutes: post["prepTimeInMinutes"]
+        };
 
-      const options = {
-        hostname: global.gConfig.webservice_host,
-        port: global.gConfig.webservice_port,
-        path: '/recipe',
-        method: 'POST',
-        timeout: 2000
-      };
+        const client = getHttpClient();
 
-      const req2 = http.request(options, (resp) => {
-        resp.on('data', () => { });
+        const options = {
+          hostname: global.gConfig.webservice_host,
+          port: global.gConfig.webservice_port,
+          path: '/recipe',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
 
-        resp.on('end', () => {
-          console.log("Recipe saved (backend responded)");
+        const backendReq = client.request(options, (resp) => {
+          resp.on('data', () => { });
+          resp.on('end', () => {
+            console.log("Recipe saved");
+          });
         });
-      });
 
-      req2.on('error', (err) => {
-        console.error('Backend POST failed:', err.message);
+        backendReq.on('error', (err) => {
+          console.error('POST backend failed:', err.message);
+        });
 
-        res.write('<div id="space"></div>');
-        res.write('<div id="logo">⚠️ Backend unavailable — recipe not saved</div>');
-        res.write('<div id="space"></div>');
-      });
+        backendReq.write(JSON.stringify(payload));
+        backendReq.end();
 
-      req2.setHeader('content-type', 'application/json');
-      req2.write(JSON.stringify(myJSONObject));
-      req2.end();
-
-      // Show success immediately (non-blocking UX)
-      res.write('<div id="space"></div>');
-      res.write('<div id="logo">Recipe submitted!</div>');
-      res.write('<div id="space"></div>');
+      } catch (e) {
+        console.error("POST processing error:", e.message);
+      }
     });
   }
 
-  // ============================
-  // GET: Fetch Recipes (safe)
-  // ============================
+  // =========================
+  // GET (fetch recipes)
+  // =========================
   setTimeout(function () {
+
+    const client = getHttpClient();
 
     const options = {
       hostname: global.gConfig.webservice_host,
       port: global.gConfig.webservice_port,
       path: '/recipes',
       method: 'GET',
-      timeout: 2000
     };
 
-    const backendReq = http.request(options, (resp) => {
+    const backendReq = client.request(options, (resp) => {
       let data = '';
 
-      resp.on('data', (chunk) => {
-        data += chunk;
-      });
+      resp.on('data', (chunk) => data += chunk);
 
       resp.on('end', () => {
-
         res.write('<div id="space"></div>');
         res.write('<div id="logo">Your Previous Recipes</div>');
         res.write('<div id="space"></div>');
-        res.write('<div id="results">');
+        res.write('<div id="results">Name | Ingredients | PrepTime<br/></div>');
 
         try {
-          const recipes = JSON.parse(data);
+          const arr = JSON.parse(data);
 
-          if (!recipes.length) {
-            res.write('No recipes found.<br/>');
-          } else {
-            res.write('Name | Ingredients | PrepTime<br/><br/>');
-
-            recipes.forEach(r => {
-              res.write(`${r.name} | ${r.ingredients} | ${r.prepTimeInMinutes}<br/>`);
-            });
-          }
+          arr.forEach(item => {
+            res.write(`${item.name} | ${item.ingredients} | ${item.prepTimeInMinutes}<br/>`);
+          });
 
         } catch (e) {
-          console.error('JSON parse failed:', e.message);
-          res.write('<b>⚠️ Backend returned invalid data</b><br/>');
+          console.error('Parse error:', e.message);
+          res.write('<div>No recipes available (backend issue)</div>');
         }
 
-        res.write('</div>');
-        res.write('<div id="space"></div>');
         res.end(endBody);
       });
     });
 
-    // Backend DOWN
     backendReq.on('error', (err) => {
-      console.error('Backend GET failed:', err.message);
+      console.error('GET backend failed:', err.message);
 
       res.write('<div id="space"></div>');
-      res.write('<div id="logo">Your Previous Recipes</div>');
+      res.write('<div id="logo">Backend unavailable</div>');
       res.write('<div id="space"></div>');
-      res.write('<div id="results">');
-      res.write('<b>⚠️ Backend service unavailable</b><br/>');
-      res.write('Recipes cannot be loaded right now.<br/>');
-      res.write('</div>');
+      res.write('<div>Recipes cannot be loaded right now.</div>');
+
+      res.end(endBody);
+    });
+
+    backendReq.setTimeout(2000, () => {
+      console.error("Backend timeout");
+      backendReq.destroy();
+
       res.write('<div id="space"></div>');
+      res.write('<div id="logo">Backend timeout</div>');
+      res.write('<div id="space"></div>');
+
       res.end(endBody);
     });
 
@@ -174,6 +177,6 @@ http.createServer(function (req, res) {
 
   }, timeout);
 
-}).listen(global.gConfig.exposedPort, () => {
-  console.log(`Server running on port ${global.gConfig.exposedPort}`);
+}).listen(process.env.PORT || process.env.WEBSITES_PORT || global.gConfig.exposedPort, () => {
+  console.log(`Server running on port ${process.env.PORT || process.env.WEBSITES_PORT || global.gConfig.exposedPort}`);
 });
