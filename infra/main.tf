@@ -81,7 +81,7 @@ resource "azurerm_linux_web_app" "main" {
     # GitHub Actions overwrites this on first deploy via az webapp config container set.
     # lifecycle.ignore_changes ensures Terraform never touches this again after creation.
     application_stack {
-      docker_image_name   = "nginx:alpine"
+      docker_image_name   = "node:18-alpine"
       docker_registry_url = "https://index.docker.io"
     }
 
