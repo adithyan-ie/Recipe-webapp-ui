@@ -101,8 +101,13 @@ http.createServer(function (req, res) {
 					//res.write('<div id="space"></div>');
 					  });
 				});
+
+				req2.on('error', (err) => {
+				console.error('Backend call failed:', err.message);
+				// don't crash — just log it
+				});
 				req2.setHeader('content-type', 'application/json');
-				req2.write(JSON.stringify(myJSONObject));	
+				req2.write(JSON.stringify(myJSONObject));
 				req2.end();
 			});
 					
@@ -142,6 +147,7 @@ http.createServer(function (req, res) {
 					res.write('<div id="space"></div>');
 					res.write('<div id="results">Name | Ingredients | PrepTime');
 					res.write('<div id="space"></div>');
+					try{
 					const myArr = JSON.parse(data);
 					
 					i=0;
@@ -153,8 +159,18 @@ http.createServer(function (req, res) {
 					res.write('</div><div id="space"></div>');
 					
 					res.end(endBody);
+				} catch(e) {
+					console.error('Failed to parse backend response:', e.message);
+					res.end(endBody);
+				}
 				  });
 				});
+				
+				req.on('error', (err) => {
+				console.error('Backend GET failed:', err.message);
+				res.end(endBody); // still send response to browser
+				});
+
 				req.end();
 
 			}, timeout);
