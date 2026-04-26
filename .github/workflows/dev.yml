@@ -113,13 +113,21 @@ jobs:
           echo "use_slots=$(terraform output -raw use_slots)" >> $GITHUB_OUTPUT
 
       # Deploy to main app (B1)
+      # - name: Deploy to main app
+      #   if: steps.tf.outputs.use_slots != 'true'
+      #   uses: azure/webapps-deploy@v3
+      #   with:
+      #     app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+      #     resource-group-name: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      #     images: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui:${{ github.sha }}
+
       - name: Deploy to main app
-        if: steps.tf.outputs.use_slots != 'true'
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          resource-group-name: ${{ secrets.AZURE_RESOURCE_GROUP }}
-          images: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui:${{ github.sha }}
+        run: |
+          az webapp config container set \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --docker-custom-image-name ${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui:${{ github.sha }} \
+            --docker-registry-server-url https://${{ secrets.ACR_LOGIN_SERVER }}
 
       - name: Restart main app
         if: steps.tf.outputs.use_slots != 'true'

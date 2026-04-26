@@ -11,10 +11,10 @@ terraform {
   # Uncomment to use Azure Blob as remote state backend
   backend "azurerm"{}
   #  backend "azurerm" {
-  #   resource_group_name  = "rg-tfstate"
-  #   storage_account_name = "sttfstaterecipewebapp"
-  #   container_name       = "tfstate"
-  #   key                  = "recipe-webapp.tfstate"
+  #   resource_group_name  = "rg-tfstate-ui"
+  #   storage_account_name = "sttfstaterecipewebappui"
+  #   container_name       = "tfstateui"
+  #   key                  = "recipe-webapp.tfstateui"
   #   use_azuread_auth     = true
   # }
 }
@@ -80,19 +80,18 @@ resource "azurerm_linux_web_app" "main" {
     # GitHub Actions overwrites this on first deploy via az webapp config container set.
     # lifecycle.ignore_changes ensures Terraform never touches this again after creation.
     application_stack {
-      docker_image_name   = "mcr.microsoft.com/appsvc/staticsite:latest"
-      docker_registry_url = "https://mcr.microsoft.com"
+      docker_image_name   = "nginx:alpine"
+      docker_registry_url = "https://index.docker.io"
     }
 
-    health_check_path                 = "/actuator/health"
+    health_check_path                 = "/"
     health_check_eviction_time_in_min = 2
   }
 
   app_settings = {
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
-    WEBSITES_PORT                       = "8080"
-    SPRING_PROFILES_ACTIVE              = var.spring_profile
+   WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
     acrUseManagedIdentityCreds = "true"
+    DOCKER_REGISTRY_SERVER_URL = "https://${var.acr_name}.azurecr.io"
   }
 
   logs {
