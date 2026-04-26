@@ -34,7 +34,7 @@ output "webapp_default_hostname" {
 
 output "staging_slot_hostname" {
   value = try(
-    "https://${azurerm_linux_web_app_slot.staging[0].default_hostname}",
+    "https://${azurerm_linux_web_app_slot.staging.default_hostname}",
     null
   )
 }
