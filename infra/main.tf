@@ -9,14 +9,14 @@ terraform {
   }
 
   # Uncomment to use Azure Blob as remote state backend
-  backend "azurerm"{}
-  #  backend "azurerm" {
-  #   resource_group_name  = "rg-tfstate-ui"
-  #   storage_account_name = "sttfstaterecipewebappui"
-  #   container_name       = "tfstateui"
-  #   key                  = "recipe-webapp.tfstateui"
-  #   use_azuread_auth     = true
-  # }
+ # backend "azurerm"{}
+   backend "azurerm" {
+    resource_group_name  = "rg-tfstate-ui"
+    storage_account_name = "sttfstaterecipewebappui"
+    container_name       = "tfstate-ui"
+    key                  = "recipe-webapp.tfstate-ui"
+    use_azuread_auth     = true
+  }
 }
 
 provider "azurerm" {
@@ -75,6 +75,7 @@ resource "azurerm_linux_web_app" "main" {
 
   site_config {
     always_on = true
+    container_registry_use_managed_identity = true 
 
     # Placeholder image on first apply.
     # GitHub Actions overwrites this on first deploy via az webapp config container set.
@@ -129,12 +130,11 @@ resource "azurerm_linux_web_app_slot" "staging" {
   }
 
   site_config {
-    always_on = true
+    always_on = false
   }
 
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
-    SPRING_PROFILES_ACTIVE              = "staging"
 
     acrUseManagedIdentityCreds = "true"
   }

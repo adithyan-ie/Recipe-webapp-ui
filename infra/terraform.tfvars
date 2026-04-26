@@ -19,5 +19,4 @@ acr_sku         = "Basic"      # Upgrade to Standard/Premium for geo-replication
 app_service_sku = "B1"       # P1v3 minimum recommended for production + slots
 
 image_name     = "nginx:stable-alpine"
-spring_profile = "dev"
 

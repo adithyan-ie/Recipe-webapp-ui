@@ -62,9 +62,3 @@ variable "image_name" {
   type        = string
   default     = "nginx:stable-alpine"
 }
-
-variable "spring_profile" {
-  description = "Spring Boot active profile for the production slot"
-  type        = string
-  default     = "dev"
-}
