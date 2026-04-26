@@ -67,17 +67,22 @@ jobs:
           docker build -t ${{ steps.image.outputs.image }} .
           docker push ${{ steps.image.outputs.image }}
 
-      - name: Scan image with Trivy (SARIF)
-        uses: aquasecurity/trivy-action@0.20.0
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: ${{ steps.image.outputs.image }}
-          format: sarif
-          output: trivy-results.sarif
+          format: table
+          output: trivy-report.txt
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
 
-      - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Save Trivy report
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: trivy-results.sarif     
+          name: trivy-report
+          path: trivy-report.txt    
 
   deploy-dev:
     needs: docker-build-push
