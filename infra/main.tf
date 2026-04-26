@@ -89,9 +89,8 @@ resource "azurerm_linux_web_app" "main" {
   }
 
   app_settings = {
-   WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
     acrUseManagedIdentityCreds = "true"
-    DOCKER_REGISTRY_SERVER_URL = "https://${var.acr_name}.azurecr.io"
   }
 
   logs {
@@ -121,7 +120,6 @@ resource "azurerm_linux_web_app" "main" {
 # # Staging Deployment Slot
 # # ─────────────────────────────────────────────
 resource "azurerm_linux_web_app_slot" "staging" {
-  count = local.use_slots ? 1 : 0
   name           = "staging"
   app_service_id = azurerm_linux_web_app.main.id
 
@@ -136,9 +134,9 @@ resource "azurerm_linux_web_app_slot" "staging" {
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
     SPRING_PROFILES_ACTIVE              = "staging"
-    WEBSITES_PORT                       = "8080"
-  }
 
+    acrUseManagedIdentityCreds = "true"
+  }
 
   tags = local.common_tags
 }
