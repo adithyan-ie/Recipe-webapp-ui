@@ -136,7 +136,6 @@ jobs:
           echo "use_slots=$(terraform output -raw use_slots)" >> $GITHUB_OUTPUT
 
       - name: Enable managed identity for ACR pull
-        if: steps.tf.outputs.use_slots != 'true'
         run: |
           az webapp config set \
             --name ${{ secrets.AZURE_WEBAPP_NAME_PROD }} \
@@ -144,6 +143,7 @@ jobs:
             --generic-configurations '{"acrUseManagedIdentityCreds": true}'
 
       - name: Deploy to main app
+        if: steps.tf.outputs.use_slots != 'true'
         run: |
            az webapp config set \
             --name ${{ secrets.AZURE_WEBAPP_NAME_PROD }} \
