@@ -134,7 +134,7 @@ resource "azurerm_linux_web_app_slot" "staging" {
 
   site_config {
     always_on = false
-
+    container_registry_use_managed_identity = true
      application_stack {
       docker_image_name   = "node:18-alpine"
       docker_registry_url = "https://index.docker.io"
