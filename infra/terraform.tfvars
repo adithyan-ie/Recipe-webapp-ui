@@ -6,11 +6,11 @@
 
 resource_group_name = "rg-recipe-ui"
 location            = "switzerlandnorth"
-environment         = "development"
+environment         = "production"
 app_name            = "recipe-ui"
 
 # Must be globally unique across all Azure customers
-webapp_name = "recipe-ui-dev"
+webapp_name = "recipe-ui-prod"
 
 # Must be globally unique, 5-50 alphanumeric chars only
 acr_name = "recipeuiacr"
