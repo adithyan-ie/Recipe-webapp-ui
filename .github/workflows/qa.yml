@@ -94,6 +94,8 @@ jobs:
     permissions:
         id-token: write
         contents: read
+    environment:
+      name: test
 
     steps:
 
