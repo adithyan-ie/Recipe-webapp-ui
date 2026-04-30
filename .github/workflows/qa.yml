@@ -87,16 +87,13 @@ jobs:
           name: trivy-report
           path: trivy-report.txt    
 
-  deploy-prod:
+  deploy-qa:
     needs: docker-build-push
     runs-on: ubuntu-latest
 
     permissions:
         id-token: write
         contents: read
-
-    environment:
-      name: production
 
     steps:
 
@@ -138,7 +135,7 @@ jobs:
       - name: Enable managed identity for ACR pull
         run: |
           az webapp config set \
-            --name ${{ secrets.AZURE_WEBAPP_NAME_PROD }} \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --generic-configurations '{"acrUseManagedIdentityCreds": true}'
 
@@ -146,7 +143,7 @@ jobs:
         if: steps.tf.outputs.use_slots != 'true'
         run: |
            az webapp config set \
-            --name ${{ secrets.AZURE_WEBAPP_NAME_PROD }} \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --linux-fx-version "DOCKER|${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui-qa:${{ github.sha }}"
 
@@ -154,14 +151,14 @@ jobs:
         if: steps.tf.outputs.use_slots != 'true'
         run: |
           az webapp restart \
-            --name ${{ secrets.AZURE_WEBAPP_NAME_PROD }} \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}
 
       - name: Deploy to slot
         if: steps.tf.outputs.use_slots == 'true'
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME_PROD }}
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           slot-name: staging
           images: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui-prod:${{ github.sha }}
 
@@ -173,7 +170,7 @@ jobs:
         if: steps.tf.outputs.use_slots == 'true'
         run: |
           az webapp deployment slot swap \
-            --name ${{ secrets.AZURE_WEBAPP_NAME_PROD }} \
+            --name ${{ secrets.AZURE_WEBAPP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --slot staging \
             --target-slot production
