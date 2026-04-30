@@ -2,7 +2,7 @@ name: Node CI + Docker Build & Push
 
 on:
   push:
-    branches: [  release ]
+    branches: [  QA ]
   pull_request:
   workflow_dispatch:
 
@@ -41,7 +41,7 @@ jobs:
       id-token: write
 
     environment:
-      name: production
+      name: test
 
     outputs:
       image: ${{ steps.image.outputs.image }}
@@ -52,7 +52,7 @@ jobs:
       - name: Set image tag
         id: image
         run: |
-          IMAGE=${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui-prod:${{ github.sha }}
+          IMAGE=${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui-qa:${{ github.sha }}
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
       - name: Azure Login
@@ -127,7 +127,7 @@ jobs:
             -backend-config="resource_group_name=rg-tfstate-ui" \
             -backend-config="storage_account_name=sttfstaterecipewebappui" \
             -backend-config="container_name=tfstate-ui" \
-            -backend-config="key=prod/recipe-webapp.tfstate-ui"
+            -backend-config="key=recipe-webapp.tfstate-ui"
 
       - name: Read use_slots from Terraform
         id: tf
@@ -148,7 +148,7 @@ jobs:
            az webapp config set \
             --name ${{ secrets.AZURE_WEBAPP_NAME_PROD }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --linux-fx-version "DOCKER|${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui-prod:${{ github.sha }}"
+            --linux-fx-version "DOCKER|${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui-qa:${{ github.sha }}"
 
       - name: Restart main app
         if: steps.tf.outputs.use_slots != 'true'
