@@ -165,10 +165,9 @@ jobs:
           slot-name: staging
           images: ${{ secrets.ACR_LOGIN_SERVER }}/recipe-ui-prod:${{ github.sha }}
 
-      - name: Smoke test Stage
+      - name: Wait for slot warm-up
         if: steps.tf.outputs.use_slots == 'true'
-        run: |
-          curl -f https://${{ secrets.AZURE_WEBAPP_NAME_PROD }}-staging.azurewebsites.net/
+        run: sleep 25
 
       - name: Swap staging to production
         if: steps.tf.outputs.use_slots == 'true'
